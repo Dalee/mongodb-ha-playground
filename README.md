@@ -55,7 +55,6 @@ $ mongo --quiet --port 27016 --eval "db.isMaster()"
 create sample database and collection via `haproxy`:
 ```
 $ mongo --quiet --port 27016 --eval 'db.hello.insert({"name":"world"});' test-db
-switched to db test-db
 WriteResult({ "nInserted" : 1 })
 ```
 
