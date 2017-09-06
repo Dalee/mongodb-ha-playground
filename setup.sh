@@ -9,7 +9,7 @@ echo "deb http://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.2 multiverse" 
 sudo apt-get -qq update
 sudo apt-get -qq -y install \
     haproxy \
-    mongodb-org=3.2.14 \
+    mongodb-org \
     jq
 
 #
@@ -48,7 +48,7 @@ sudo cp -f /vagrant/haproxy.conf /etc/haproxy/haproxy.cfg
 #
 #
 #
-echo "==> Starting MongoDB-HA..."
+echo "==> Starting MongoDB-HA services..."
 sudo systemctl start \
     haproxy \
     mongodb-27017 \
@@ -58,26 +58,27 @@ sudo systemctl start \
 #
 #
 #
-echo "==> Initializing MongoDB-HA ReplicaSet..."
+echo "==> Initializing MongoDB-HA..."
 SOCKET_STATUS="1"
 while [ "${SOCKET_STATUS}" != "0" ]
 do
-    echo "MongoDB startup is in progress..."
-    sleep 1
+    echo "*** MongoDB-HA startup is in progress, please wait..."
     nc -z -w2 127.0.0.1 27017
     SOCKET_STATUS=$?
+    sleep 1
 done
-mongo --quiet --port 27017 < /vagrant/rs0-initialize.js
+echo "==> MongoDB-HA startup is complete, initializing replication..."
+mongo --quiet --port 27017 < /vagrant/rs0-initialize.js > /dev/null
 
 #
 #
 #
-echo "==> Creating MongoDB-HA Sample database and record..."
+echo "==> Waiting MongoDB-HA replication setup..."
 IS_MASTER="false"
 while [ "${IS_MASTER}" != "true" ]
 do
-    echo "MongoDB replication setup is in progress..."
-    sleep 1
+    echo "*** Replication setup is in progress, please wait..."
     IS_MASTER=$(mongo --quiet --port 27017 --eval "JSON.stringify(db.isMaster())" | jq '.ismaster')
+    sleep 1
 done
-mongo --quiet --port 27017 < /vagrant/rs0-sample-database.js
+echo "==> Done!"

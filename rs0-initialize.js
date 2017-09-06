@@ -1,4 +1,3 @@
-// initialize replication
 rs.initiate({
     _id: "rs0",
     version: 1,
